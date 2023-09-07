@@ -1,3 +1,68 @@
+const express = require('express');
+const bodyParser = require('body-parser');
+const { map } = require('./solutions/todoServer.solution.simple');
+const app = express();
+const port = 3001
+app.use(express.json());
+
+
+
+var TodoArray = [{
+  "title": "ccBuys groceries",
+  "completed":false,
+  "description": "I should buy groceries",
+  "id":555
+},
+{
+  "title": "ccBuys groceries",
+  "completed":false,
+  "description": "I should buy groceries",
+  "id":111
+}]
+
+
+function CheckAvailableList (req){
+  const FindItem = TodoArray.find(item => item.title === req.body.title)
+  return FindItem;
+}
+
+// Add Items in Array
+app.post('/todos',(req,res)=>{
+  // console.log("Finnnnn",CheckAvailableList(req))
+  if (!CheckAvailableList(req)){
+    TodoArray.push( {...req.body,id: Math.floor(Math.random()*1000) })
+    res.status(200).send({message : "Added", array: TodoArray})
+  }
+  else{
+    res.status(400).send("Item Already Present")
+  }
+})
+
+// Get Items from array
+app.get('/todos',(req, res)=>{
+  res.status(200).send(TodoArray)
+})
+
+// Update Array
+app.put('/todos/:id', async(req, res) => {
+  const id = req.params.id
+  const ItemIndex = TodoArray.findIndex((obj => obj.id == req.params.id))
+  // const updatedData = req.body; // Assuming you're sending JSON data in the request body
+  TodoArray[ItemIndex].title = req.body.title,
+  TodoArray[ItemIndex].description = req.body.description,
+  TodoArray[ItemIndex].completed = req.body.completed,
+
+
+  // Your update logic here
+  res.status(200).send({message:"Data Updated",Array: TodoArray});
+});
+
+// Delete Array 
+app.delete('/todos/:id', (req, res) => {
+  TodoArray = TodoArray.filter((obj => obj.id != req.params.id))
+  res.status(200).send({message: "Deleted Successfully", Array: TodoArray})
+})
+
 /**
   You need to create an express HTTP server in Node.js which will handle the logic of a todo list app.
   - Don't use any database, just store all the data in an array to store the todo list data (in-memory)
@@ -39,11 +104,14 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
 
-const app = express();
 
-app.use(bodyParser.json());
+// app.use(bodyParser.json());
 
-module.exports = app;
+// module.exports = app;
+
+function Started(){
+  console.log(`Server Started on ${port}`)
+}
+
+app.listen(port, Started)
